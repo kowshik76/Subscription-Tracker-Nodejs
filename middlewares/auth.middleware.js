@@ -13,7 +13,7 @@ const Authorize = async (req, res, next) => {
     }
     if (!token) {
       return res.status(401).json({
-        message: "Unauthorized access 1",
+        message: "Unauthorized access",
       });
     }
     const decoded = jwt.verify(token, JWT_SECRET);

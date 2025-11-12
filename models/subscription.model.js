@@ -35,6 +35,7 @@ const subscriptionSchema = new mongoose.Schema(
         "web series",
         "music",
         "manga",
+        "Entertainment",
         "others",
       ],
       required: true,

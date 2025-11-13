@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Subscription from "../models/subscription.model.js";
 
 export const createsubscription = async (req, res, next) => {
@@ -27,6 +28,70 @@ export const getUserSubscription = async (req, res, next) => {
     res.status(200).json({
       success: true,
       subscriptions,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+export const deleteUserSubscription = async (req, res, next) => {
+  try {
+    const subid = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(subid)) {
+      const error = new Error("You are not the one");
+      error.statusCode = 401;
+      throw error;
+    }
+    const subscription = await Subscription.findById(subid);
+    if (!subscription) {
+      const error = new Error("Please get out");
+      error.statusCode = 401;
+      throw error;
+    }
+    if (subscription.user.toString() !== req.user.id) {
+      const error = new Error("Please get out");
+      error.statusCode = 401;
+      throw error;
+    }
+    await Subscription.deleteOne();
+    res.status(200).json({
+      success: true,
+      message: "Subscription deleted Succesfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const UpdateSubscription = async (req, res, next) => {
+  try {
+    const subid = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(subid)) {
+      const error = new Error("Nope ,I can 't");
+      error.statusCode = 401;
+      throw error;
+    }
+    const subscription = await Subscription.findById(subid);
+    if (!subscription) {
+      const error = new Error("No subscription found");
+      error.statusCode = 403;
+      throw error;
+    }
+    if (subscription.user.toString() !== req.user.id) {
+      const error = new Error("No Match");
+      error.statusCode = 403;
+      throw error;
+    }
+    const updatedData = { ...req.body };
+    delete updatedData.user;
+    delete updatedData._id;
+    const updated = await Subscription.findByIdAndUpdate(subid, updatedData, {
+      new: true,
+      runValidators: true,
+    });
+    res.status(200).json({
+      success: true,
+      message: "Updated data successfully",
+      data: updated,
     });
   } catch (error) {
     next(error);

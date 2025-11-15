@@ -1,16 +1,31 @@
 import mongoose from "mongoose";
 import Subscription from "../models/subscription.model.js";
+import { workFlowClient } from "../config/upstash.js";
+import { SERVER_URL } from "../config/env.js";
 
 export const createsubscription = async (req, res, next) => {
   try {
     const subscription = await Subscription.create({
       ...req.body,
-      //user._id was comming from authorize middleware , as it enables creating subscription only if the auhtor is logined
       user: req.user._id,
     });
+
+    const result = await workFlowClient.trigger({
+      url: `${SERVER_URL}/api/v1/workflow/subscription/remainder`,
+      body: {
+        subscriptionId: subscription.id,
+      },
+      headers: {
+        "content-type": "application/json",
+      },
+      retries: 0,
+    });
+
     res.status(200).json({
       success: true,
       subscription,
+      workflowId: result.workflowId, // NOW this works
+      delivered: result.delivered, // Optional but nice
     });
   } catch (error) {
     next(error);
